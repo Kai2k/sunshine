@@ -2,10 +2,12 @@ package com.example.android.sunshine.app;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -37,7 +39,7 @@ import java.util.List;
 /**
  * Created by kaiarmer on 26/01/15.
  */
-public class ForecastFragment extends Fragment {
+public class ForecastFragment extends Fragment{
 
     public ArrayAdapter<String> forecastAdapter;
 
@@ -57,10 +59,17 @@ public class ForecastFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("94043");
+            String zipCode = getUserPreferredZipCode();
+            new FetchWeatherTask().execute(zipCode == null ? "94043" : zipCode);
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private String getUserPreferredZipCode() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String zipCode = preferences.getString(getActivity().getString(R.string.pref_location_key), "DL5 5PU");
+        return zipCode;
     }
 
     @Override
@@ -154,13 +163,15 @@ public class ForecastFragment extends Fragment {
                 final String UNITS_PARAM = "units";
                 final String DAYS_PARAM = "cnt";
 
-                Uri builtUri = Uri.parse("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=5").buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, parms[0])
+//                Uri builtUri = Uri.parse("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=5").buildUpon()
+                Uri builtUri = Uri.parse(BASE_URI).buildUpon()
+                        .appendQueryParameter(QUERY_PARAM, postCode)
                         .appendQueryParameter(FORMAT_PARAM, format)
                         .appendQueryParameter(UNITS_PARAM, units)
                         .appendQueryParameter(DAYS_PARAM, Integer.toString(noOfDays))
                         .build();
                 URL url = new URL(builtUri.toString());
+                Log.d(LOG_TAG, "URI =" + builtUri.toString());
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
