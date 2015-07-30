@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by kaiarmer on 26/01/15.
  */
-public class ForecastFragment extends Fragment{
+public class ForecastFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public ArrayAdapter<String> forecastAdapter;
 
@@ -50,6 +50,7 @@ public class ForecastFragment extends Fragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -59,11 +60,15 @@ public class ForecastFragment extends Fragment{
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            String zipCode = getUserPreferredZipCode();
-            new FetchWeatherTask().execute(zipCode == null ? "94043" : zipCode);
+            refresh_data();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void refresh_data(){
+        String zipCode = getUserPreferredZipCode();
+        new FetchWeatherTask().execute(zipCode == null ? "94043" : zipCode);
     }
 
     private String getUserPreferredZipCode() {
@@ -121,6 +126,11 @@ public class ForecastFragment extends Fragment{
             }
         });
         return rootView;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        refresh_data();
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
