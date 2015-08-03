@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by kaiarmer on 26/01/15.
  */
-public class ForecastFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class ForecastFragment extends Fragment{
 
     public ArrayAdapter<String> forecastAdapter;
 
@@ -50,7 +50,6 @@ public class ForecastFragment extends Fragment implements SharedPreferences.OnSh
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -129,7 +128,8 @@ public class ForecastFragment extends Fragment implements SharedPreferences.OnSh
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+    public void onStart() {
+        super.onStart();
         refresh_data();
     }
 
@@ -249,10 +249,17 @@ public class ForecastFragment extends Fragment implements SharedPreferences.OnSh
          * Prepare the weather high/lows for presentation.
          */
         private String formatHighLows(double high, double low) {
+
+            //check if user has chosen to view high/low in imperial measurement
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String unitOfMeasure = sharedPreferences.getString(getActivity().getString(R.string.pref_measurement_units_key), getActivity().getString(R.string.pref_measurement_units_default));
+            if (unitOfMeasure.equals("fahrenheit")){
+                low += 33.8;
+                high += 33.8;
+            }
             // For presentation, assume the user doesn't care about tenths of a degree.
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
-
             String highLowStr = roundedHigh + "/" + roundedLow;
             return highLowStr;
         }
