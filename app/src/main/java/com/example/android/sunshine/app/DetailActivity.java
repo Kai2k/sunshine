@@ -19,12 +19,15 @@ package com.example.android.sunshine.app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.support.v7.widget.ShareActionProvider;
 import android.widget.TextView;
 
 public class DetailActivity extends ActionBarActivity {
@@ -69,8 +72,46 @@ public class DetailActivity extends ActionBarActivity {
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
+        ShareActionProvider shareActionProvider;
 
         public PlaceholderFragment() {
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            // Inflate the menu; this adds items to the action bar if it is present.
+            getActivity().getMenuInflater().inflate(R.menu.share_detail, menu);
+            MenuItem shareMenuItem = menu.findItem(R.id.action_share);
+            shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
+            setShareIntent(createShareIntent());
+        }
+
+        private Intent createShareIntent(){
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_TEXT, getDetailText());
+            intent.setType("text/plain");
+            return intent;
+        }
+
+        private String getDetailText(){
+            Intent intent = getActivity().getIntent();
+            if (intent != null){
+                return intent.getStringExtra("EXTRA_TEXT") + " #Sunshine app";
+            }
+            return "weather details not retrieved";
+        }
+
+        private void setShareIntent(Intent intent){
+            if (shareActionProvider != null){
+                shareActionProvider.setShareIntent(intent);
+            }
         }
 
         @Override
