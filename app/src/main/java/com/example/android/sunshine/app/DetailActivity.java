@@ -21,13 +21,13 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v7.widget.ShareActionProvider;
 import android.widget.TextView;
 
 public class DetailActivity extends ActionBarActivity {
@@ -38,7 +38,7 @@ public class DetailActivity extends ActionBarActivity {
         setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new DetailFragment())
                     .commit();
         }
     }
@@ -71,45 +71,43 @@ public class DetailActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class DetailFragment extends Fragment {
         ShareActionProvider shareActionProvider;
+        private String mForecastString = null;
+        private final String SUNSHINE_HASHTAG = "#Sunshine app";
 
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
+        public DetailFragment() {
             setHasOptionsMenu(true);
         }
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             // Inflate the menu; this adds items to the action bar if it is present.
-            getActivity().getMenuInflater().inflate(R.menu.share_detail, menu);
+            getActivity().getMenuInflater().inflate(R.menu.detail_fragment, menu);
             MenuItem shareMenuItem = menu.findItem(R.id.action_share);
             shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
             setShareIntent(createShareIntent());
         }
 
-        private Intent createShareIntent(){
+        private Intent createShareIntent() {
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_SEND);
             intent.putExtra(Intent.EXTRA_TEXT, getDetailText());
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
             intent.setType("text/plain");
             return intent;
         }
 
-        private String getDetailText(){
+        private String getDetailText() {
             Intent intent = getActivity().getIntent();
-            if (intent != null){
-                return intent.getStringExtra("EXTRA_TEXT") + " #Sunshine app";
+            if (intent != null) {
+                return mForecastString + SUNSHINE_HASHTAG;
             }
             return "weather details not retrieved";
         }
 
-        private void setShareIntent(Intent intent){
-            if (shareActionProvider != null){
+        private void setShareIntent(Intent intent) {
+            if (shareActionProvider != null) {
                 shareActionProvider.setShareIntent(intent);
             }
         }
@@ -120,9 +118,10 @@ public class DetailActivity extends ActionBarActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
             Intent intent = getActivity().getIntent();
-            View detailsTextView = (TextView)rootView.findViewById(R.id.weather_detail_container);
-            if (intent != null && intent.hasExtra("EXTRA_TEXT")){
-                    ((TextView) detailsTextView).setText(intent.getStringExtra("EXTRA_TEXT"));
+            View detailsTextView = (TextView) rootView.findViewById(R.id.weather_detail_container);
+            if (intent != null && intent.hasExtra("EXTRA_TEXT")) {
+                mForecastString = intent.getStringExtra("EXTRA_TEXT");
+                ((TextView) detailsTextView).setText(mForecastString);
             }
             return rootView;
         }
